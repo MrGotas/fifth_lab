@@ -1,3 +1,4 @@
+//var 16
 #include <iostream>
 #include <vector>
 #include <string>
@@ -12,40 +13,33 @@ protected:
     double price;
 
 public:
-    PeripheralDevice(int id, const string& brand, double price)
-        : id(id), brand(brand), price(price) {}
+    PeripheralDevice(int id, string brand, double price) : id(id), brand(brand), price(price) {}
 
-    // Метод для вывода базовой информации
-    void displayBasicInfo() const {
-        cout << "ID: " << id << ", Brand: " << brand << endl;
-    }
+    virtual void displayInfo() const = 0;
 
-    // Метод для вывода полной информации
-    virtual void displayInfo() const {
-        cout << "ID: " << id << ", Brand: " << brand << ", Price: $" << price;
-    }
+    virtual string getType() const = 0;
 
-    // Метод для получения ID
     int getId() const {
         return id;
     }
 
-    virtual ~PeripheralDevice() = default;
+    string getBrand() const {
+        return brand;
+    }
 };
 
 // Класс наушников
 class Headphones : public PeripheralDevice {
-    string constructionType;
-    string mountingMethod;
-
+    string constructionType, mountingMethod;
 public:
-    Headphones(int id, const string& brand, double price, const string& constructionType, const string& mountingMethod)
-        : PeripheralDevice(id, brand, price), constructionType(constructionType), mountingMethod(mountingMethod) {}
+    Headphones(int id, string brand, double price, string constructionType, string mountingMethod) : PeripheralDevice(id, brand, price), constructionType(constructionType), mountingMethod(mountingMethod) {}
 
     void displayInfo() const override {
-        PeripheralDevice::displayInfo();
-        cout << ", Construction Type: " << constructionType
-             << ", Mounting Method: " << mountingMethod << endl;
+        cout << "ID: " << id << ", Brand: " << brand << ", Price: $" << price << ", Construction: " << constructionType << ", Mounting: " << mountingMethod << endl;
+    }
+
+    string getType() const override {
+        return "Headphones";
     }
 };
 
@@ -53,87 +47,80 @@ public:
 class Microphone : public PeripheralDevice {
     string frequencyRange;
     double sensitivity;
-
 public:
-    Microphone(int id, const string& brand, double price, const string& frequencyRange, double sensitivity)
-        : PeripheralDevice(id, brand, price), frequencyRange(frequencyRange), sensitivity(sensitivity) {}
+    Microphone(int id, string brand, double price, string frequencyRange, double sensitivity) : PeripheralDevice(id, brand, price), frequencyRange(frequencyRange), sensitivity(sensitivity) {}
 
     void displayInfo() const override {
-        PeripheralDevice::displayInfo();
-        cout << ", Frequency Range: " << frequencyRange
-             << ", Sensitivity: " << sensitivity << " dB" << endl;
+        cout << "ID: " << id << ", Brand: " << brand << ", Price: $" << price << ", Frequency: " << frequencyRange << ", Sensitivity: " << sensitivity << " dB" << endl;
+    }
+
+    string getType() const override {
+        return "Microphone";
     }
 };
 
 // Класс клавиатуры
 class Keyboard : public PeripheralDevice {
-    string switchType;
-    string interfaceType;
-
+    string switchType, interfaceType;
 public:
-    Keyboard(int id, const string& brand, double price, const string& switchType, const string& interfaceType)
-        : PeripheralDevice(id, brand, price), switchType(switchType), interfaceType(interfaceType) {}
+    Keyboard(int id, string brand, double price, string switchType, string interfaceType) : PeripheralDevice(id, brand, price), switchType(switchType), interfaceType(interfaceType) {}
 
     void displayInfo() const override {
-        PeripheralDevice::displayInfo();
-        cout << ", Switch Type: " << switchType
-             << ", Interface: " << interfaceType << endl;
+        cout << "ID: " << id << ", Brand: " << brand << ", Price: $" << price << ", Switch: " << switchType << ", Interface: " << interfaceType << endl;
+    }
+
+    string getType() const override {
+        return "Keyboard";
     }
 };
 
 // Фабрика устройств
 class DeviceFactory {
 public:
-    static PeripheralDevice* createDevice(const string& type, int id, const string& brand, double price,
-                                          const string& param1, const string& param2, double param3 = 0) {
-        if (type == "Headphones") {
-            return new Headphones(id, brand, price, param1, param2);
-        } else if (type == "Microphone") {
-            return new Microphone(id, brand, price, param1, param3);
-        } else if (type == "Keyboard") {
-            return new Keyboard(id, brand, price, param1, param2);
-        }
+    static PeripheralDevice* createDevice(const string& type, int id, string brand, double price, string param1, string param2, double param3 = 0) {
+        if (type == "Headphones") return new Headphones(id, brand, price, param1, param2);
+
+        if (type == "Microphone") return new Microphone(id, brand, price, param1, param3);
+
+        if (type == "Keyboard") return new Keyboard(id, brand, price, param1, param2);
+
         return nullptr;
     }
 };
 
 int main() {
-    vector<PeripheralDevice*> devices;
+    vector<PeripheralDevice*> devices = {
+        DeviceFactory::createDevice("Headphones", 1, "Sony", 99.99, "Over-Ear", "Headband"),
 
-    // Создание устройств через фабрику
-    devices.push_back(DeviceFactory::createDevice("Headphones", 1, "Sony", 99.99, "Over-Ear", "Headband"));
-    devices.push_back(DeviceFactory::createDevice("Microphone", 2, "Blue", 149.99, "20Hz-20kHz", "", -42));
-    devices.push_back(DeviceFactory::createDevice("Keyboard", 3, "Logitech", 199.99, "Mechanical", "Wireless"));
+        DeviceFactory::createDevice("Microphone", 2, "Blue", 149.99, "20Hz-20kHz", "", -42),
 
-    // Вывод базовой информации о всех устройствах
-    cout << "\nList of devices (basic info):\n";
+        DeviceFactory::createDevice("Keyboard", 3, "Logitech", 199.99, "Mechanical", "Wireless"),
+
+        DeviceFactory::createDevice("Keyboard", 4, "Ardor", 50.99, "Mechanical", "Wireless")
+    };
+
+    // Вывод базовой информации
     for (const auto& device : devices) {
-        device->displayBasicInfo();
+        cout << "ID: " << device->getId() << ", Type: " << device->getType() << ", Brand: " << device->getBrand() << endl;
     }
 
-    // Запрос у пользователя ID для вывода полной информации
     int searchId;
-    cout << "\nEnter device ID to get full details: ";
+    cout << "Enter device ID for full details: ";
     cin >> searchId;
-    bool found = false;
 
+    bool found = false;
     for (const auto& device : devices) {
         if (device->getId() == searchId) {
-            cout << "\nFull details of the selected device:\n";
             device->displayInfo();
             found = true;
             break;
         }
     }
 
-    if (!found) {
-        cout << "Device with ID " << searchId << " not found." << endl;
-    }
+    if (!found) cout << "Device not found." << endl;
 
     // Очистка памяти
-    for (auto& device : devices) {
-        delete device;
-    }
+    for (auto& device : devices) delete device;
 
     return 0;
 }
